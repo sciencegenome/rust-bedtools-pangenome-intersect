@@ -9,7 +9,6 @@ use clap::Parser;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::process::Command;
 
 /*
 *Author Gaurav Sablok
@@ -57,7 +56,7 @@ fn pangenome_intersect(path1: &str, path2: &str, path3: &str) -> Result<String, 
         });
     }
 
-    let fastaslice: Vec<Fasta> = Vec::new();
+    let fastaslice: Vec<Fasta> = fasta_estimate(path3).unwrap();
 
     let mut compare_value_bed1: Vec<CompareValues> = Vec::new();
     let mut compare_value_bed2: Vec<CompareValues> = Vec::new();
@@ -118,27 +117,86 @@ fn pangenome_intersect(path1: &str, path2: &str, path3: &str) -> Result<String, 
 
     for i in bed1.iter() {
         for j in bed2.iter() {
-            for value in fastaslice.iter(){
-            if j.start2 < i.start1 && i.start1 < j.end2 && j.end2 < i.end1 {
-                compare_value_bed3.push(CompareValues {
-                    bed1: i.bed1.clone(),
-                    bed2: j.bed2.clone(),
-                    start1: i.start1,
-                    end1: i.end1,
-                    start2: j.start2,
-                    end2: j.end2,
-                    matchtype1: i.matchytpe1.clone(),
-                    matchtype2: j.matchtype2.clone(),
-                    difference: j.end2 - i.start1,
-                    sequencebed1:Some(value.sequence[i.start1..i.end1].to_string()),
-                    sequencebed2: Some(value.sequence[j.start2..j.end2].to_string()),
-
-                })
+            for value in fastaslice.iter() {
+                if j.start2 < i.start1 && i.start1 < j.end2 && j.end2 < i.end1 {
+                    compare_value_bed3.push(CompareValues {
+                        bed1: i.bed1.clone(),
+                        bed2: j.bed2.clone(),
+                        start1: i.start1,
+                        end1: i.end1,
+                        start2: j.start2,
+                        end2: j.end2,
+                        matchtype1: i.matchytpe1.clone(),
+                        matchtype2: j.matchtype2.clone(),
+                        difference: j.end2 - i.start1,
+                        sequencebed1: Some(value.sequence[i.start1..i.end1].to_string()),
+                        sequencebed2: Some(value.sequence[j.start2..j.end2].to_string()),
+                        overlap: Some(value.sequence[i.start1..j.end2].to_string()),
+                    })
+                }
             }
         }
     }
+
+    let mut writevalues =
+        File::create("bedtools-pangenome-intersect.txt").expect("file not present");
+    for i in compare_value_bed1.iter() {
+        writeln!(
+            writevalues,
+            "{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\n",
+            i.bed1,
+            i.bed2,
+            i.start1,
+            i.end1,
+            i.start2,
+            i.end2,
+            i.matchtype1,
+            i.matchtype2,
+            i.difference,
+            i.sequencebed1,
+            i.sequencebed2,
+            i.overlap
+        )
+        .expect("line not present");
     }
-    println!("{:?}", compare_value_bed3);
+    for val in compare_value_bed2.iter() {
+        writeln!(
+            writevalues,
+            "{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\n",
+            val.bed1,
+            val.bed2,
+            val.start1,
+            val.end1,
+            val.start2,
+            val.end2,
+            val.matchtype1,
+            val.matchtype2,
+            val.difference,
+            val.sequencebed1,
+            val.sequencebed2,
+            val.overlap
+        )
+        .expect("line not present");
+    }
+    for gen in compare_value_bed3.iter() {
+        writeln!(
+            writevalues,
+            "{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\n",
+            gen.bed1,
+            gen.bed2,
+            gen.start1,
+            gen.end1,
+            gen.start2,
+            gen.end2,
+            gen.matchtype1,
+            gen.matchtype2,
+            gen.difference,
+            gen.sequencebed1,
+            gen.sequencebed2,
+            gen.overlap
+        )
+        .expect("line not present");
+    }
 
     Ok("pangenome intersect results have been written".to_string())
 }
