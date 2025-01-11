@@ -2,7 +2,7 @@
  
  - rust pangenome bedtools intersect.
  - deals with the cpg, exon, and other bindings overlap. 
- - in addition to bedtools, this pangenome bedtools reports also the overlap sequence, sequence of the bed and also the model embeddings. 
+ - in addition to bedtools, this pangenome bedtools reports also the overlap sequence, sequence of the bed and the features that dont overlap.  
  - to make it multithreaded use rayon.
  - general note: Incase of Golang and RUST, please see the last commit message and if it says compiled binary then it is completed or else still in development version. 
 
